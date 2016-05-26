@@ -67,7 +67,7 @@ class Base:
     def _load_user_settings_per_user(self):
         return {}
 
-    def _update_settings_fot_bot(self, settings):
+    def _update_settings_for_bot(self, settings):
         pass
 
     def _update_settings_for_user(self, user_id, settings):
@@ -78,7 +78,7 @@ class Base:
         logging.info('[bot#%s] Updating settings to %s by user#%s', self.bot_id, kwargs, user_id)
         if self.SETTINGS_TYPE == self.SETTINGS_PER_BOT:
             self.settings.update(kwargs)
-            yield maybe_future(self._update_settings_fot_bot(self.settings))
+            yield maybe_future(self._update_settings_for_bot(self.settings))
         else:
             if user_id not in self.user_settings:
                 self.user_settings[user_id] = kwargs
