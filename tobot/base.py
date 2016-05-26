@@ -85,6 +85,8 @@ class Base:
             else:
                 self.user_settings[user_id].update(kwargs)
 
+            yield maybe_future(self._update_settings_for_user(user_id, self.settings))
+
     def get_settings(self, user_id):
         if self.SETTINGS_TYPE == self.SETTINGS_PER_BOT:
             return deepcopy(self.settings)
