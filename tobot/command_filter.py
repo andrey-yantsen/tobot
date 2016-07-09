@@ -10,7 +10,7 @@ class CommandFilterBase:
         @wraps(f)
         def wrapper(*args, **kwargs):
             test_passed = self.test(*args, **kwargs)
-            if test_passed is not False:
+            if test_passed is not False or kwargs.get('bypass_command_filter', False) is True:
                 if isinstance(test_passed, dict):
                     kwargs.update(test_passed)
                 return f(*args, **kwargs)
