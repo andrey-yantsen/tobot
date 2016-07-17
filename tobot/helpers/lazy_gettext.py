@@ -1,14 +1,15 @@
 from tornado import locale
 from tornado.locale import Locale
+from copy import deepcopy
 
 
 class pgettext:
     def __init__(self, context, message):
-        self.context = context
-        self.message = message
+        self._context = context
+        self._message = message
         self._locale = None
-        self.format_args = ()
-        self.format_kwargs = {}
+        self._format_args = ()
+        self._format_kwargs = ()
 
     @property
     def locale(self):
@@ -21,33 +22,35 @@ class pgettext:
         self._locale = l
 
     def __str__(self):
-        ret = self.locale.pgettext(self.context, self.message)
+        ret = self.locale.pgettext(self._context, self._message)
         return self._apply_format(ret)
 
     def _apply_format(self, text):
-        if self.format_args or self.format_kwargs:
-            return text.format(*set_locale_recursive(self.format_args, self._locale),
-                               **set_locale_recursive(self.format_kwargs, self._locale))
+        if len(self._format_args) > 0:
+            text = text.format(*set_locale_recursive(self._format_args, self._locale))
+        if len(self._format_kwargs) > 0:
+            text = text.format(**set_locale_recursive(self._format_kwargs, self._locale))
         return text
 
     def format(self, *args, **kwargs):
-        self.format_args = args
-        self.format_kwargs = kwargs
+        self._format_args = deepcopy(args)
+        self._format_kwargs = deepcopy(kwargs)
         return self
 
 
 class npgettext(pgettext):
     def __init__(self, context, message, plural_message, count):
         super().__init__(context, message)
-        self.plural_message = plural_message
-        self.count = count
+        self._plural_message = plural_message
+        self._count = count
 
     def __str__(self):
-        ret = self.locale.pgettext(self.context, self.message, self.plural_message, self.count)
+        ret = self.locale.pgettext(self._context, self._message, self._plural_message, self._count)
         return self._apply_format(ret)
 
 
 def set_locale_recursive(data, l):
+    data = deepcopy(data)
     if isinstance(data, dict):
         for k, v in data.items():
             data[k] = set_locale_recursive(v, l)
