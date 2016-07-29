@@ -7,7 +7,7 @@ except ImportError:
 
 setup(
     name="tobot",
-    version="0.3",
+    version="0.3.1",
     author="Andrey Yantsen",
     author_email="andrey@yantsen.su",
     packages=find_packages(),

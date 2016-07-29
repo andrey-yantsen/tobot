@@ -16,7 +16,7 @@ class Stages:
 
     def __init__(self, bot_id, ttl=7200):
         self.bot_id = bot_id
-        self.stages = None
+        self.stages = {}
         self.ttl = ttl
         self.cleaner = PeriodicCallback(self.drop_expired, min(300000, ttl * 1000))
         self.cleaner.start()
@@ -54,8 +54,6 @@ class Stages:
         if key in self.stages:
             del self.stages[key]
             logging.debug('Deleted stage #%s', key)
-            f = self.db.execute('DELETE FROM stages WHERE bot_id = %s AND key = %s', (self.bot_id, key))
-            IOLoop.current().add_future(f, lambda x: None)
 
     def __contains__(self, item):
         return item in self.stages
