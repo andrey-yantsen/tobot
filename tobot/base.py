@@ -132,6 +132,12 @@ class Base:
             else:
                 chat_id = update['callback_query']['from']['id']
             user_id = update['callback_query']['from']['id']
+        elif 'channel_post' in update:
+            chat_id = update['channel_post']['chat']['id']
+            user_id = update['channel_post']['chat']['id']
+        elif 'edited_channel_post' in update:
+            chat_id = update['edited_channel_post']['chat']['id']
+            user_id = update['edited_channel_post']['chat']['id']
         else:
             raise BotError('Unable to get stage_key for this type of update')
 
