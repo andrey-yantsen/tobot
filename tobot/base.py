@@ -9,7 +9,7 @@ from tornado.locks import Event
 from tornado.queues import Queue
 from ujson import dumps
 
-from .telegram import Api
+from .telegram import Api, ApiError
 from .helpers.lazy_gettext import set_locale_recursive, pgettext
 from .command import Command
 
@@ -172,6 +172,8 @@ class Base:
                     except ApiError as e:
                         if not self.ignore_403_in_handlers or str(e.code) != '403':
                             raise
+                        else:
+                            logging.exception('Got exception in message handler')
                     if processing_result is not False:
                         if not command_in_tree[1] and processing_result is not None:
                             if processing_result is True:
@@ -193,6 +195,8 @@ class Base:
                         except ApiError as e:
                             if not self.ignore_403_in_handlers or str(e.code) != '403':
                                 raise
+                            else:
+                                logging.exception('Got exception in message handler')
             except:
                 logging.exception('[bot#%s] Got error while processing message %s', self.bot_id,
                                   dumps(received_update, indent=2))
