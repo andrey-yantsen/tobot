@@ -23,6 +23,7 @@ class Base:
         self.token = token
         self.settings = kwargs.pop('settings', {})
 
+        self.ignore_403_in_handlers = kwargs.pop('ignore_403_in_handlers', False)
         for key, value in kwargs.items():
             self.__dict__[key] = value
 
@@ -166,7 +167,11 @@ class Base:
 
                 processing_result = False
                 for command_in_tree in commands_tree:
-                    processing_result = yield command_in_tree[0](**received_update)
+                    try:
+                        processing_result = yield command_in_tree[0](**received_update)
+                    except ApiError as e:
+                        if not self.ignore_403_in_handlers or str(e.code) != '403':
+                            raise
                     if processing_result is not False:
                         if not command_in_tree[1] and processing_result is not None:
                             if processing_result is True:
@@ -183,7 +188,11 @@ class Base:
                 if processing_result is False:
                     logging.debug('Handler not found: %s', dumps(received_update, indent=2))
                     if self.unknown_command_handler:
-                        yield maybe_future(self.unknown_command_handler(self, **received_update))
+                        try:
+                            yield maybe_future(self.unknown_command_handler(self, **received_update))
+                        except ApiError as e:
+                            if not self.ignore_403_in_handlers or str(e.code) != '403':
+                                raise
             except:
                 logging.exception('[bot#%s] Got error while processing message %s', self.bot_id,
                                   dumps(received_update, indent=2))
