@@ -130,15 +130,17 @@ class Api:
                 if response['ok']:
                     return response['result']
                 else:
-                    raise ApiError(response['error_code'], response['description'], response.get('parameters'))
+                    raise ApiError(response['error_code'], response['description'], response.get('parameters'),
+                                   request_body=body)
         except HTTPError as e:
             if e.code == 599:
                 logging.exception('%s request timed out', method)  # Do nothing on timeout, just return None
             elif e.response and e.response.body:
                 response = ujson.loads(e.response.body.decode('utf-8'))
-                raise ApiError(response['error_code'], response['description'], response.get('parameters'))
+                raise ApiError(response['error_code'], response['description'], response.get('parameters'),
+                               request_body=body)
             else:
-                raise ApiError(e.code, None)
+                raise ApiError(e.code, None, request_body=body)
 
         return None
 
@@ -185,7 +187,8 @@ class Api:
 
             for update in updates:
                 yield maybe_future(self.processor(update))
-                last_update_id = update['update_id']
+                if 'update_id' in update:
+                    last_update_id = update['update_id']
 
             if len(updates):
                 last_update_id += 1
@@ -376,10 +379,11 @@ class ForceReply(ReplyMarkup):
 
 
 class ApiError(Exception):
-    def __init__(self, error_code, description, parameters=None, *args, **kwargs):
+    def __init__(self, error_code, description, parameters=None, request_body=None, *args, **kwargs):
         self.code = error_code
         self.description = description
         self.parameters = {} if parameters is None else parameters
+        self.request_body = request_body
         super().__init__('Api error: %s, %s' % (error_code, description), *args, **kwargs)
 
 
